@@ -18,7 +18,11 @@ RomAddr = Union[int, str]
 
 def parse_segment_vram(segment: Union[dict, list]) -> Optional[int]:
     if isinstance(segment, dict) and "vram" in segment:
-        return int(segment["vram"])
+        vram = segment["vram"]
+        if isinstance(vram, int):
+            return int(segment["vram"])
+        else:
+            return None
     else:
         return None
 
@@ -125,6 +129,12 @@ class Segment:
             return str(segment[2])
         else:
             return str(cls.get_default_name(rom_start))
+    
+    @staticmethod
+    def parse_segment_after(segment: Union[dict, list]) -> Optional[str]:
+        if isinstance(segment, dict) and "after" in segment:
+            return str(segment["after"])
+        return None
 
     def __init__(
         self,
@@ -145,6 +155,7 @@ class Segment:
         self.type = type
         self.name = name
         self.vram_start = vram_start
+        self.after = Segment.parse_segment_after(yaml)
         self.extract = extract
 
         self.given_subalign = given_subalign

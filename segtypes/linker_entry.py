@@ -61,6 +61,15 @@ def get_segment_cname(segment: Segment) -> str:
         return to_cname(segment.parent.name + "_" + segment.name)
     else:
         return to_cname(segment.name)
+    
+def get_segment_vram_end_symbol(name: str) -> str:
+    cname = to_cname(name)
+    # Due to linker addresses getting sign extended, this masking is required to not cause linker errors due to out of range relocs
+    return f"{cname}_BSS_END & 0xFFFFFFFF "
+
+def sign_extend(value: int, bits: int, to_extend: int) -> int:
+    sign_bit = 1 << (bits - 1)
+    return ((value & (sign_bit - 1)) - (value & sign_bit)) & ((1 << to_extend) - 1)
 
 
 class LinkerEntry:
@@ -237,10 +246,9 @@ class LinkerWriter:
             # TODO: align 0x10, preferably
             pass
 
-        self._writeln(f". = __romPos;")
-
         vram = segment.vram_start
-        vram_str = f"0x{vram:X} " if isinstance(vram, int) else ""
+        prev = segment.after
+        vram_str = get_segment_vram_end_symbol(prev) if prev else f"0x{vram:X} " if isinstance(vram, int) else ""
 
         name = get_segment_cname(segment)
 

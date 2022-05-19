@@ -189,7 +189,7 @@ class Instruction:
 class Symbol:
     @property
     def default_name(self) -> str:
-        suffix = f"_{self.vram_start:X}"
+        suffix = f"_{self.vram_start:X}" if self.vram_start else ""
 
         if self.in_overlay:
             suffix += f"_{self.rom:X}"
@@ -209,7 +209,7 @@ class Symbol:
 
     @property
     def vram_end(self):
-        return self.vram_start + self.size
+        return self.vram_start if self.vram_start else 0 + self.size
 
     @property
     def name(self) -> str:

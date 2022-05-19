@@ -341,13 +341,19 @@ class CommonSegData(CommonSegCodeSubsegment, CommonSegGroup):
             )
 
             dis_start = self.get_most_parent().ram_to_rom(syms[i].vram_start)
+            if not dis_start:
+                dis_start = 0
             dis_end = self.get_most_parent().ram_to_rom(syms[i + 1].vram_start)
+            if not dis_end:
+                dis_end = 0
             sym_len = dis_end - dis_start
+            # sym_len = self.get_most_parent().ram_to_rom(syms[i].size)
 
             if self.type == "bss":
                 disasm_str = f".space 0x{sym_len:X}"
             else:
-                sym_bytes = rom_bytes[dis_start:dis_end]
+                sym_bytes = rom_bytes[dis_start : dis_end]
+                vram_start = sym.vram_start if sym.vram_start else 0
 
                 # Checking if the mnemonic is addiu may be too picky - we'll see
                 if self.is_valid_ascii(sym_bytes) and mnemonic == "addiu":
@@ -368,7 +374,7 @@ class CommonSegData(CommonSegCodeSubsegment, CommonSegGroup):
                     stype = "float"
                 elif (
                     len(sym_bytes) % 4 == 0
-                    and sym.vram_start % 4 == 0
+                    and vram_start % 4 == 0
                     and (
                         mnemonic in CommonSegCodeSubsegment.word_mnemonics
                         or not mnemonic
@@ -377,7 +383,7 @@ class CommonSegData(CommonSegCodeSubsegment, CommonSegGroup):
                     stype = "word"
                 elif (
                     len(sym_bytes) % 2 == 0
-                    and sym.vram_start % 2 == 0
+                    and vram_start % 2 == 0
                     and (
                         mnemonic in CommonSegCodeSubsegment.short_mnemonics
                         or not mnemonic
